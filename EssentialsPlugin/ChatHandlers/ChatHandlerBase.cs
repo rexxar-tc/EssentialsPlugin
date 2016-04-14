@@ -56,15 +56,16 @@
 
         public virtual Communication.ServerDialogItem GetHelpDialog( )
         {
-            Communication.ServerDialogItem DialogItem = new Communication.ServerDialogItem();
-            DialogItem.title = "Help";
-            DialogItem.header = GetCommandText();
-            DialogItem.content = GetHelp();
-            DialogItem.buttonText = "close";
-            return DialogItem;
+            return new Communication.ServerDialogItem
+            {
+                title = "Help",
+                header = GetCommandText( ),
+                content = GetHelp( ),
+                buttonText = "close"
+            };
         }
 
-        public virtual String GetCommandText()
+        public virtual string GetCommandText()
 		{
 			return "";
 		}
