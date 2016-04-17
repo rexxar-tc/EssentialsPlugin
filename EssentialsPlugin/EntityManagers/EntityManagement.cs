@@ -168,7 +168,7 @@
 				}
 
 				DateTime getGridsStart = DateTime.Now;
-				//CubeGrids.GetGridsUnconnected( entitiesFound, entitiesFiltered );
+				CubeGrids.GetGridsUnconnected( entitiesFound, entitiesFiltered );
 				getGrids += ( DateTime.Now - getGridsStart ).TotalMilliseconds;
 
 				HashSet<IMyEntity> entitiesToConceal = new HashSet<IMyEntity>( );
@@ -489,14 +489,17 @@
 				if ( !entity.InScene )
 					return;
 
-			    MyCubeGrid grid = entity as MyCubeGrid;
-			    if ( grid == null )
-			        return;
+				MyObjectBuilder_CubeGrid builder = CubeGrids.SafeGetObjectBuilder( (IMyCubeGrid)entity );
+				if ( builder == null )
+					return;
                 
                 pos = 1;
-			    long ownerId = grid.BigOwners.FirstOrDefault( );
+                IMyCubeGrid grid = (IMyCubeGrid)entity;
+				long ownerId;
 				string ownerName = string.Empty;
-
+                if ( CubeGrids.GetOwner( builder, out ownerId ) )
+                {
+                    //ownerId = grid.BigOwners.First();
                     ownerName = PlayerMap.Instance.GetPlayerItemFromPlayerId( ownerId ).Name;
 
                     if ( !PluginSettings.Instance.DynamicConcealPirates )
@@ -508,7 +511,7 @@
                             return;
                         }
                     }
-                
+                }
                 Essentials.Log.Info( grid.EntityId.ToString() + " " + ownerId.ToString() + " " + ownerName );
 
 				pos = 2;
@@ -524,8 +527,8 @@
 				entity.Visible = false;
 				*/
 
-				//builder.PersistentFlags = MyPersistentEntityFlags2.None;
-				//MyAPIGateway.Entities.RemapObjectBuilder( builder );
+				builder.PersistentFlags = MyPersistentEntityFlags2.None;
+				MyAPIGateway.Entities.RemapObjectBuilder( builder );
 
 				pos = 3;
                 if ( RemovedGrids.Contains( entity.EntityId ) )
@@ -554,31 +557,31 @@
 						}
 						*/
                         pos = 5;
-                        //IMyEntity newEntity = MyEntities.CreateFromObjectBuilder( builder );
+                        IMyEntity newEntity = MyEntities.CreateFromObjectBuilder( builder );
 
-                        //if ( newEntity == null )
-                        //{
-                            //Essentials.Log.Warn( "CreateFromObjectBuilder failed: {0}", builder.EntityId );
-                        //    return;
-                        //}
+                        if ( newEntity == null )
+                        {
+                            Essentials.Log.Warn( "CreateFromObjectBuilder failed: {0}", builder.EntityId );
+                            return;
+                        }
 
                         pos = 6;
                         RemovedGrids.Add( entity.EntityId );
                         entity.InScene = false;
                         entity.OnRemovedFromScene( entity );
 						BaseEntityNetworkManager.BroadcastRemoveEntity( entity, false );
-						//MyAPIGateway.Entities.AddEntity( newEntity, false );
-                        //MyMultiplayer.ReplicateImmediatelly( MyExternalReplicable.FindByObject( newEntity ) );
+						MyAPIGateway.Entities.AddEntity( newEntity, false );
+                        MyMultiplayer.ReplicateImmediatelly( MyExternalReplicable.FindByObject( newEntity ) );
 
                         pos = 7;
-                       // if ( PluginSettings.Instance.DynamicShowMessages )
-							//Essentials.Log.Info( "Concealed - Id: {0} -> {4} Display: {1} OwnerId: {2} OwnerName: {3}", entity.EntityId, entity.DisplayName, ownerId, ownerName, newEntity.EntityId );
+                        if ( PluginSettings.Instance.DynamicShowMessages )
+							Essentials.Log.Info( "Concealed - Id: {0} -> {4} Display: {1} OwnerId: {2} OwnerName: {3}", entity.EntityId, entity.DisplayName, ownerId, ownerName, newEntity.EntityId );
 					}
 					else
 					{
 						entity.InScene = false;
-						//if ( PluginSettings.Instance.DynamicShowMessages )
-							//Essentials.Log.Info( "Concealed - Id: {0} -> {4} Display: {1} OwnerId: {2} OwnerName: {3}", entity.EntityId, entity.DisplayName, ownerId, ownerName, builder.EntityId );
+						if ( PluginSettings.Instance.DynamicShowMessages )
+							Essentials.Log.Info( "Concealed - Id: {0} -> {4} Display: {1} OwnerId: {2} OwnerName: {3}", entity.EntityId, entity.DisplayName, ownerId, ownerName, builder.EntityId );
 					}
 				}
 			}
@@ -994,7 +997,7 @@
 			string reason = item.Value;
 			//Wrapper.GameAction(() =>
 			//{
-            MyObjectBuilder_CubeGrid builder = null;//CubeGrids.SafeGetObjectBuilder( (IMyCubeGrid)entity );
+			MyObjectBuilder_CubeGrid builder = CubeGrids.SafeGetObjectBuilder( (IMyCubeGrid)entity );
 			if ( builder == null )
 				return;
 
@@ -1004,9 +1007,9 @@
 			IMyCubeGrid grid = (IMyCubeGrid)entity;
 			long ownerId = 0;
 			string ownerName = string.Empty;
-			if ( grid.BigOwners.Count > 0 )
+			if ( CubeGrids.GetBigOwners( builder ).Count > 0 )
 			{
-				ownerId = grid.BigOwners.First( );
+				ownerId = CubeGrids.GetBigOwners( builder ).First( );
 				ownerName = PlayerMap.Instance.GetPlayerItemFromPlayerId( ownerId ).Name;
 			}
 			/*
@@ -1108,7 +1111,7 @@
                 if ( !(entity is IMyCubeGrid) )
                     continue;
 
-                MyObjectBuilder_CubeGrid builder = null;//CubeGrids.SafeGetObjectBuilder( (IMyCubeGrid)entity );
+                MyObjectBuilder_CubeGrid builder = CubeGrids.SafeGetObjectBuilder( (IMyCubeGrid)entity );
                 if ( builder == null )
                     continue;
 
@@ -1157,7 +1160,7 @@
 					return false;
 				}
 
-				//.GetGridsUnconnected( entitiesFound, entities );
+				CubeGrids.GetGridsUnconnected( entitiesFound, entities );
 
 				HashSet<IMyEntity> entitiesToConceal = new HashSet<IMyEntity>( );
 				FilterEntitiesForMedbayCheck( steamId, entitiesFound, entitiesToConceal );

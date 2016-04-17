@@ -30,10 +30,10 @@
         {
             int updateSpeed = PluginSettings.Instance.DynamicConcealUpdateSpeed;
 
-            if ( updateSpeed < 1000 )
+            if ( updateSpeed < 100 )
                 return updateSpeed;
             else
-                return 1000;
+                return 100;
         }
 
 		public override void Handle()
